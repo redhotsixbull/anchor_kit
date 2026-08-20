@@ -1,3 +1,8 @@
+## 0.1.1
+
+- **Docs:** denser, mobile-sized screenshots (430×820) so the README images
+  read clearly instead of tall, mostly-empty frames. No code changes.
+
 ## 0.1.0
 
 - **New:** `FloatingOverlay` gains `barrierDismissible` + `onDismiss` — a

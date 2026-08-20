@@ -72,6 +72,10 @@ PositionResult computePosition({anchor, floating, viewport, placement, middlewar
   guarantee; see the "re-positions when an ancestor scrolls" test.)
 - **Re-measures** the floating child each frame, so content that changes size
   stays correctly positioned (no stale cached size).
+- **Dismiss barrier**: when `barrierDismissible` is true and `onDismiss` is set,
+  a transparent full-screen barrier is placed *behind* the floating element; a
+  tap on it calls `onDismiss`. Taps on the floating element itself do NOT
+  dismiss. Off by default (fully backward compatible).
 - Lifecycle safety: `_open` no-ops if unmounted or if no `Overlay` is present;
   all post-frame `setState`/measurement is `mounted`-guarded; the overlay entry
   and per-frame tracker are torn down on close/dispose.

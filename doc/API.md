@@ -92,6 +92,8 @@ FloatingOverlay({
   required Widget child,
   Placement placement = Placement.bottom,
   List<Middleware> middleware = const [],
+  bool barrierDismissible = false,
+  VoidCallback? onDismiss,
 })
 ```
 
@@ -102,8 +104,11 @@ FloatingOverlay({
 - The overlay uses a two-pass measurement (first pass off-screen inside
   `Offstage`) so you can render arbitrarily-sized floating widgets without
   knowing their dimensions ahead of time.
-- Re-positions automatically on rebuild and on scroll notifications from
-  ancestors.
+- Re-positions automatically every frame while open: ancestor scrolling, window
+  resize/rotation, or anchor movement.
+- `barrierDismissible` + `onDismiss`: when both are set, a transparent
+  full-screen barrier behind the floating element calls `onDismiss` on tap.
+  Taps on the floating element itself do not dismiss.
 
 ---
 

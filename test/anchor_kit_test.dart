@@ -289,6 +289,42 @@ void main() {
 
       controller.dispose();
     });
+
+    testWidgets('barrierDismissible calls onDismiss on an outside tap',
+        (tester) async {
+      var dismissed = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: FloatingOverlay(
+                isOpen: true,
+                placement: Placement.bottom,
+                barrierDismissible: true,
+                onDismiss: () => dismissed++,
+                floating: _pop,
+                child: const SizedBox(
+                    width: 100,
+                    height: 40,
+                    child: ColoredBox(color: Color(0xFFFF00FF))),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('pop'), findsOneWidget);
+
+      // Tap a corner far from the floating element → barrier catches it.
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pump();
+      expect(dismissed, 1);
+
+      // Tapping the floating element itself must NOT dismiss.
+      await tester.tap(find.text('pop'));
+      await tester.pump();
+      expect(dismissed, 1);
+    });
   });
 }
 

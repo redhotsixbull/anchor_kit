@@ -1,3 +1,14 @@
+## 0.1.0
+
+- **New:** `FloatingOverlay` gains `barrierDismissible` + `onDismiss` — a
+  transparent tap-outside-to-close barrier for dropdowns / selects / popovers.
+- **Example:** rebuilt into a recipe gallery — placement playground, tooltip,
+  dropdown, select (flips up), and a popover-with-arrow card. Deep-linkable via
+  `?demo=<id>` on web. Now runs on web too.
+- **Docs:** README overhauled with screenshots, concept explanations
+  (offset/flip/shift/arrow) and a "Known limitations" section.
+- Bundles all `0.0.2` fixes below.
+
 ## 0.0.2
 
 - **Fix:** `FloatingOverlay` now follows the anchor when an **ancestor**

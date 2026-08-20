@@ -18,6 +18,11 @@ typedef FloatingBuilder = Widget Function(
 /// ancestor scrolling, window resize/rotation, or the anchor itself moving —
 /// re-positions the floating element. The floating element is also re-measured
 /// each frame, so content that changes size stays correctly positioned.
+///
+/// Set [barrierDismissible] with an [onDismiss] callback to have a tap anywhere
+/// outside the floating element request a close (useful for dropdowns / selects
+/// / popovers). The barrier is fully transparent and does not block the anchor
+/// from re-opening.
 class FloatingOverlay extends StatefulWidget {
   const FloatingOverlay({
     super.key,
@@ -26,6 +31,8 @@ class FloatingOverlay extends StatefulWidget {
     required this.child,
     this.placement = Placement.bottom,
     this.middleware = const [],
+    this.barrierDismissible = false,
+    this.onDismiss,
   });
 
   final bool isOpen;
@@ -33,6 +40,13 @@ class FloatingOverlay extends StatefulWidget {
   final Widget child;
   final Placement placement;
   final List<Middleware> middleware;
+
+  /// If true (and [onDismiss] is provided), a transparent full-screen barrier
+  /// is placed behind the floating element; tapping it calls [onDismiss].
+  final bool barrierDismissible;
+
+  /// Called when the barrier is tapped. Typically flips your `isOpen` state.
+  final VoidCallback? onDismiss;
 
   @override
   State<FloatingOverlay> createState() => _FloatingOverlayState();
@@ -113,12 +127,28 @@ class _FloatingOverlayState extends State<FloatingOverlay> {
     final mediaSize = MediaQuery.of(overlayContext).size;
     final viewport = Rect.fromLTWH(0, 0, mediaSize.width, mediaSize.height);
 
-    return _MeasureAndPosition(
+    final positioned = _MeasureAndPosition(
       anchor: anchorRect,
       viewport: viewport,
       placement: widget.placement,
       middleware: widget.middleware,
       builder: widget.floating,
+    );
+
+    if (!widget.barrierDismissible || widget.onDismiss == null) {
+      return positioned;
+    }
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.onDismiss,
+            child: const SizedBox.expand(),
+          ),
+        ),
+        positioned,
+      ],
     );
   }
 

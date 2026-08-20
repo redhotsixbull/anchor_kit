@@ -1,0 +1,21 @@
+name: anchor_kit
+description: Headless anchor-positioning primitives for popovers, tooltips, dropdowns and menus. Inspired by Floating UI.
+version: 0.0.1
+homepage: https://github.com/redhotsixbull/anchor_kit
+repository: https://github.com/redhotsixbull/anchor_kit
+issue_tracker: https://github.com/redhotsixbull/anchor_kit/issues
+
+environment:
+  sdk: ^3.9.2
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:

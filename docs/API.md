@@ -46,10 +46,12 @@ class PositionResult {
 
 ## Middleware
 
-### `Offset4(distance, {crossAxis = 0})`
+### `OffsetMiddleware(distance, {crossAxis = 0})`
 
 Pushes the floating element away from the anchor by `distance` on the main
 axis, optionally offset by `crossAxis` on the cross axis.
+
+> `Offset4` is a deprecated alias for `OffsetMiddleware`, kept until v0.1.0.
 
 Data: none.
 

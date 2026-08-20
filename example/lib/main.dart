@@ -55,7 +55,7 @@ class _DemoPageState extends State<DemoPage> {
                         label: pos.label,
                         placement: _placement,
                         middleware: [
-                          Offset4(8),
+                          OffsetMiddleware(8),
                           if (_flipEnabled) Flip(padding: 8),
                           if (_shiftEnabled) Shift(padding: 8),
                         ],

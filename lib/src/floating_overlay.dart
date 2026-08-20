@@ -1,3 +1,4 @@
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
 import 'compute_position.dart';
@@ -12,9 +13,11 @@ typedef FloatingBuilder = Widget Function(
 /// Renders [floating] into an [Overlay] positioned relative to the child
 /// widget, according to [placement] + [middleware].
 ///
-/// The overlay is inserted while [isOpen] is true and removed otherwise.
-/// Positioning is re-computed on every frame the floating child rebuilds and
-/// on scroll notifications from ancestors.
+/// The overlay is inserted while [isOpen] is true and removed otherwise. While
+/// open, the anchor's global rectangle is tracked once per frame: any change —
+/// ancestor scrolling, window resize/rotation, or the anchor itself moving —
+/// re-positions the floating element. The floating element is also re-measured
+/// each frame, so content that changes size stays correctly positioned.
 class FloatingOverlay extends StatefulWidget {
   const FloatingOverlay({
     super.key,
@@ -38,6 +41,15 @@ class FloatingOverlay extends StatefulWidget {
 class _FloatingOverlayState extends State<FloatingOverlay> {
   OverlayEntry? _entry;
   final _anchorKey = GlobalKey();
+  Rect? _lastAnchorRect;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _open());
+    }
+  }
 
   @override
   void didUpdateWidget(covariant FloatingOverlay oldWidget) {
@@ -49,23 +61,38 @@ class _FloatingOverlayState extends State<FloatingOverlay> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    if (widget.isOpen) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _open());
-    }
-  }
-
   void _open() {
-    if (_entry != null) return;
+    if (_entry != null || !mounted) return;
+    final overlay = Overlay.maybeOf(context);
+    if (overlay == null) return;
     _entry = OverlayEntry(builder: _buildOverlay);
-    Overlay.of(context).insert(_entry!);
+    overlay.insert(_entry!);
+    _lastAnchorRect = null;
+    _trackAnchor();
   }
 
   void _close() {
     _entry?.remove();
     _entry = null;
+    _lastAnchorRect = null;
+  }
+
+  /// Re-arms itself every frame while the overlay is open, re-positioning only
+  /// when the anchor's global rect actually changes (cheap: one localToGlobal
+  /// per frame).
+  void _trackAnchor() {
+    if (_entry == null) return;
+    final box = _anchorKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box != null && box.hasSize && box.attached) {
+      final rect = box.localToGlobal(Offset.zero) & box.size;
+      if (rect != _lastAnchorRect) {
+        _lastAnchorRect = rect;
+        _entry!.markNeedsBuild();
+      }
+    }
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _trackAnchor();
+    });
   }
 
   @override
@@ -83,12 +110,8 @@ class _FloatingOverlayState extends State<FloatingOverlay> {
 
     final anchorTopLeft = anchorBox.localToGlobal(Offset.zero);
     final anchorRect = anchorTopLeft & anchorBox.size;
-    final viewport = Rect.fromLTWH(
-      0,
-      0,
-      MediaQuery.of(overlayContext).size.width,
-      MediaQuery.of(overlayContext).size.height,
-    );
+    final mediaSize = MediaQuery.of(overlayContext).size;
+    final viewport = Rect.fromLTWH(0, 0, mediaSize.width, mediaSize.height);
 
     return _MeasureAndPosition(
       anchor: anchorRect,
@@ -101,13 +124,7 @@ class _FloatingOverlayState extends State<FloatingOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (_) {
-        _entry?.markNeedsBuild();
-        return false;
-      },
-      child: KeyedSubtree(key: _anchorKey, child: widget.child),
-    );
+    return KeyedSubtree(key: _anchorKey, child: widget.child);
   }
 }
 
@@ -134,32 +151,42 @@ class _MeasureAndPositionState extends State<_MeasureAndPosition> {
   Size? _measuredSize;
   final _measureKey = GlobalKey();
 
+  void _scheduleMeasure() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
+      if (box == null || !box.hasSize) return;
+      // Re-measure every frame so content that changes size stays positioned.
+      if (_measuredSize != box.size) {
+        setState(() => _measuredSize = box.size);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    _scheduleMeasure();
     final size = _measuredSize;
 
     if (size == null) {
-      // First pass: render off-screen at (0,0) with visibility hidden,
-      // measure, then rebuild.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
-        if (box == null || !box.hasSize) return;
-        setState(() => _measuredSize = box.size);
-      });
+      // First pass: lay the child out invisibly so we can measure it, then
+      // rebuild once its size is known.
       return Positioned(
-        left: -9999,
-        top: -9999,
+        left: 0,
+        top: 0,
         child: Offstage(
           child: KeyedSubtree(
             key: _measureKey,
-            child: Builder(builder: (ctx) => widget.builder(
-                  ctx,
-                  PositionResult(
-                    offset: Offset.zero,
-                    placement: widget.placement,
-                    middlewareData: const {},
-                  ),
-                )),
+            child: Builder(
+              builder: (ctx) => widget.builder(
+                ctx,
+                PositionResult(
+                  offset: Offset.zero,
+                  placement: widget.placement,
+                  middlewareData: const {},
+                ),
+              ),
+            ),
           ),
         ),
       );
@@ -176,7 +203,10 @@ class _MeasureAndPositionState extends State<_MeasureAndPosition> {
     return Positioned(
       left: result.offset.dx,
       top: result.offset.dy,
-      child: widget.builder(context, result),
+      child: KeyedSubtree(
+        key: _measureKey,
+        child: widget.builder(context, result),
+      ),
     );
   }
 }

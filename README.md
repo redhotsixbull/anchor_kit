@@ -10,7 +10,7 @@ Flutter has excellent tooltip and menu widgets, but no reusable engine that comp
 
 - 12 `Placement`s (top/bottom/left/right × start/center/end)
 - Pure `computePosition({anchor, floating, viewport, placement, middleware})` function — no widgets, testable
-- Composable middleware: `Offset4`, `Flip`, `Shift`, `Arrow`
+- Composable middleware: `OffsetMiddleware`, `Flip`, `Shift`, `Arrow`
 - `FloatingOverlay` widget: measures floating child, positions it in the app overlay, re-positions on scroll
 
 ## Not yet
@@ -27,7 +27,7 @@ FloatingOverlay(
   isOpen: open,
   placement: Placement.bottomStart,
   middleware: [
-    Offset4(8),
+    OffsetMiddleware(8),
     Flip(padding: 4),
     Shift(padding: 8),
   ],

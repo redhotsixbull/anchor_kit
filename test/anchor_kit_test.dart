@@ -225,6 +225,137 @@ void main() {
     });
   });
 
+  group('SizeMiddleware', () {
+    Map<String, Object?> sizeData(Placement p, Rect anchor, Size floating) {
+      final r = computePosition(
+        anchor: anchor,
+        floating: floating,
+        viewport: viewport,
+        placement: p,
+        middleware: [SizeMiddleware()],
+      );
+      return r.middlewareData['size']! as Map<String, Object?>;
+    }
+
+    test('reports space below for a bottom placement', () {
+      final s = sizeData(
+          Placement.bottom, const Rect.fromLTWH(100, 100, 40, 40), const Size(60, 30));
+      expect(s['availableHeight'], 800 - 140); // viewport.bottom - anchor.bottom
+      expect(s['availableWidth'], 400);
+    });
+
+    test('reports space above for a top placement', () {
+      final s = sizeData(
+          Placement.top, const Rect.fromLTWH(100, 700, 40, 40), const Size(60, 30));
+      expect(s['availableHeight'], 700); // anchor.top - viewport.top
+    });
+
+    test('reports space to the right for a right placement', () {
+      final s = sizeData(
+          Placement.right, const Rect.fromLTWH(100, 100, 40, 40), const Size(60, 30));
+      expect(s['availableWidth'], 400 - 140); // viewport.right - anchor.right
+      expect(s['availableHeight'], 800);
+    });
+
+    test('never reports negative space', () {
+      final s = sizeData(Placement.bottom,
+          const Rect.fromLTWH(100, 780, 40, 40), const Size(60, 30));
+      expect((s['availableHeight'] as double) >= 0, isTrue);
+    });
+  });
+
+  group('Shift axes & RTL', () {
+    test('default clamps the main axis only (does not detach on cross axis)', () {
+      // Anchor near the top; a top-placed floating overflows the top edge.
+      final result = computePosition(
+        anchor: const Rect.fromLTWH(100, 20, 40, 40),
+        floating: const Size(60, 60),
+        viewport: viewport,
+        placement: Placement.top,
+        middleware: [Shift()],
+      );
+      // Cross axis (dy) is NOT clamped by default → stays overflowing (-40).
+      expect(result.offset.dy, -40);
+    });
+
+    test('crossAxis: true clamps toward the anchor', () {
+      final result = computePosition(
+        anchor: const Rect.fromLTWH(100, 20, 40, 40),
+        floating: const Size(60, 60),
+        viewport: viewport,
+        placement: Placement.top,
+        middleware: [Shift(crossAxis: true)],
+      );
+      expect(result.offset.dy, 0); // clamped to viewport.top
+    });
+
+    test('rtl keeps the right edge visible for an oversized element', () {
+      const narrow = Rect.fromLTWH(0, 0, 100, 800);
+      final result = computePosition(
+        anchor: const Rect.fromLTWH(20, 100, 40, 40),
+        floating: const Size(200, 30), // wider than the 100 viewport
+        viewport: narrow,
+        placement: Placement.bottomStart,
+        middleware: [Shift(rtl: true)],
+      );
+      // Right edge pinned to the viewport right: dx = right - width = 100 - 200.
+      expect(result.offset.dx, closeTo(-100, 0.001));
+    });
+  });
+
+  group('AutoPlacement', () {
+    test('picks the side with the most room', () {
+      final result = computePosition(
+        anchor: const Rect.fromLTWH(100, 0, 40, 40), // at the top edge
+        floating: const Size(60, 60),
+        viewport: viewport,
+        placement: Placement.top, // would overflow
+        middleware: [AutoPlacement()],
+      );
+      expect(result.placement.side, PlacementSide.bottom);
+      final data = result.middlewareData['autoPlacement']! as Map<String, Object?>;
+      expect(data['side'], 'bottom');
+      expect(data['changed'], true);
+    });
+
+    test('keeps a placement that already fits', () {
+      final result = computePosition(
+        anchor: const Rect.fromLTWH(180, 380, 40, 40), // middle
+        floating: const Size(60, 40),
+        viewport: viewport,
+        placement: Placement.bottom,
+        middleware: [AutoPlacement()],
+      );
+      expect(result.placement.side, PlacementSide.bottom);
+    });
+  });
+
+  group('Hide', () {
+    test('referenceHidden is false while the anchor is on-screen', () {
+      final result = computePosition(
+        anchor: const Rect.fromLTWH(100, 100, 40, 40),
+        floating: const Size(60, 30),
+        viewport: viewport,
+        placement: Placement.bottom,
+        middleware: [Hide()],
+      );
+      final data = result.middlewareData['hide']! as Map<String, Object?>;
+      expect(data['referenceHidden'], false);
+    });
+
+    test('referenceHidden is true when the anchor is off-screen', () {
+      final result = computePosition(
+        anchor: const Rect.fromLTWH(500, 900, 40, 40), // outside 400x800
+        floating: const Size(60, 30),
+        viewport: viewport,
+        placement: Placement.bottom,
+        middleware: [Hide()],
+      );
+      final data = result.middlewareData['hide']! as Map<String, Object?>;
+      expect(data['referenceHidden'], true);
+    });
+  });
+
   group('FloatingOverlay widget', () {
     testWidgets('renders the floating child near the anchor when open',
         (tester) async {

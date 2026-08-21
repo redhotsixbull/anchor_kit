@@ -1,3 +1,19 @@
+## 0.2.0
+
+- **New middleware:**
+  - `SizeMiddleware` — reports available space on the resolved side
+    (`data['size'] = {availableWidth, availableHeight}`) so a long menu can cap
+    its height to the viewport and scroll. New "Size" example recipe.
+  - `AutoPlacement` — picks the side with the most room (keeps the current side
+    if it fits, else least overflow); use instead of `Flip`.
+  - `Hide` — flags `data['hide'] = {referenceHidden}` when the anchor scrolls
+    off-screen.
+- **`Shift`** now clamps only the **main axis** by default (was both axes), so
+  it no longer detaches the floating element from its anchor. Opt into
+  `crossAxis: true`; `rtl: true` keeps the right edge for oversized elements.
+- Note: `SizeMiddleware` collides with `dart:ui`'s `Size`, hence the
+  `Middleware` suffix.
+
 ## 0.1.1
 
 - **Docs:** denser, mobile-sized screenshots (430×820) so the README images

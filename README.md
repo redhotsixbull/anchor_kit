@@ -107,8 +107,11 @@ order: **`OffsetMiddleware` → `Flip` → `Shift` → `Arrow`**.
   axis.
 - **`Flip({padding})`** — if the current side would overflow, flips to the
   opposite side. If neither side fully fits, keeps the one that overflows least.
-- **`Shift({padding})`** — slides the element along the viewport so it stays
-  visible, **without changing the side**:
+- **`Shift({padding, mainAxis, crossAxis, rtl})`** — slides the element along the
+  viewport so it stays visible, **without changing the side**. Clamps the **main
+  axis** (parallel to the anchor edge) by default; `crossAxis: true` also clamps
+  toward the anchor (can detach it); `rtl: true` keeps the right edge for
+  oversized elements.
 
   ```
   Without Shift:              With Shift:
@@ -121,6 +124,15 @@ order: **`OffsetMiddleware` → `Flip` → `Shift` → `Arrow`**.
 
   (`Flip` changes the side; `Shift` keeps the side and moves along the edge.
   They're usually used together.)
+- **`AutoPlacement({padding, candidates})`** — chooses the side with the most
+  room (keeps the current side if it fits, else least overflow). Use *instead of*
+  `Flip`. Records the pick in `data['autoPlacement']`.
+- **`SizeMiddleware({padding})`** — reports the space available on the resolved
+  side in `data['size'] = {availableWidth, availableHeight}`, so a long menu can
+  cap its height to the viewport and scroll internally. See the "Size" example
+  recipe.
+- **`Hide({padding})`** — flags `data['hide'] = {referenceHidden}` when the anchor
+  scrolls off-screen, so you can hide the floating element.
 - **`Arrow({padding, arrowSize})`** — computes where a little arrow should sit so
   it points at the anchor's centre. Read it from
   `position.middlewareData['arrow']` (`{x?, y?}`) — see `ArrowBubble` in the
@@ -143,17 +155,15 @@ the anchor:
 
 ## Known limitations
 
-Honest scope for `0.1.x` (vs. Floating UI). None are blockers for the use cases
-above, but know what's missing:
+Honest scope (vs. Floating UI). None are blockers for the use cases above:
 
-- No `size` middleware (constrain the floating element to the available space).
-- No `hide` middleware (detach when the anchor scrolls off-screen).
-- No `autoPlacement` (pick the best of several placements automatically).
 - No virtual/rect reference elements — the anchor is always a widget.
-- `Shift` clamps on both axes; Floating UI defaults to the main axis only.
 - `FloatingOverlay` provides positioning + an optional dismiss barrier, but not
   focus trapping / keyboard navigation / enter-exit animation — compose those
   yourself for now.
+- Middleware run in a single pass; `SizeMiddleware` reports available space and
+  the floating element settles to fit over one extra frame (fine in practice, as
+  `FloatingOverlay` re-measures every frame).
 
 See [`doc/ROADMAP.md`](doc/ROADMAP.md) and [`doc/SPEC.md`](doc/SPEC.md).
 

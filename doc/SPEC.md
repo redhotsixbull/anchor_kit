@@ -47,11 +47,37 @@ PositionResult computePosition({anchor, floating, viewport, placement, middlewar
 
 ## 5. Middleware — `Shift`
 
-- Slides the floating box along both axes to keep it within the padded
-  viewport, **without** changing the side.
-- If the floating box is **larger** than the viewport on an axis, the **start
-  edge** (left/top) is kept visible rather than pinning the far edge.
+- Slides the floating box to keep it within the padded viewport, **without**
+  changing the side.
+- Clamps the **main axis** (parallel to the anchor edge) by default: horizontal
+  for `top`/`bottom`, vertical for `left`/`right`. `crossAxis: true` also clamps
+  the perpendicular axis (can detach from the anchor); off by default.
+- If the floating box is **larger** than the available space on an axis, the
+  logical **start** edge is kept visible (left/top; or right when `rtl: true`)
+  rather than pinning the far edge.
 - Records the applied delta in `data['shift'] = {dx, dy}`.
+
+## 5b. Middleware — `AutoPlacement`
+
+- If the current placement fully fits, it is kept (`changed: false`).
+- Otherwise, among the candidate placements (default: the four sides with the
+  current alignment) it picks the one that overflows the (padded) viewport the
+  least. Records `data['autoPlacement'] = {side, changed}`. Use instead of
+  `Flip`.
+
+## 5c. Middleware — `SizeMiddleware`
+
+- Reports the space available on the resolved side against the padded viewport
+  in `data['size'] = {availableWidth, availableHeight}` (never negative). The
+  consumer caps the floating element (e.g. `maxHeight`) and scrolls. Runs in one
+  pass; a floating element that shrinks to fit settles over one extra frame
+  because `FloatingOverlay` re-measures each frame.
+
+## 5d. Middleware — `Hide`
+
+- Sets `data['hide'] = {referenceHidden: bool}`; `referenceHidden` is true once
+  the anchor no longer overlaps the padded viewport, so the consumer can hide
+  the floating element.
 
 ## 6. Middleware — `Arrow`
 
@@ -85,5 +111,7 @@ PositionResult computePosition({anchor, floating, viewport, placement, middlewar
 `OffsetMiddleware → Flip → Shift → Arrow` — offset first so flip/shift see the
 gap; arrow last so it points at the final resting position.
 
-## Not yet (out of scope for 0.0.x)
-`size`, `hide`, `autoPlacement`, virtual reference elements.
+## Not yet
+Virtual/rect reference elements; interaction/a11y layer (focus trap, keyboard
+nav, enter/exit animation) on `FloatingOverlay`. (`SizeMiddleware`, `Hide`,
+`AutoPlacement` shipped in 0.2.0.)

@@ -7,13 +7,19 @@
 - Middleware: `Offset4`, `Flip`, `Shift`, `Arrow`
 - `FloatingOverlay` widget with two-pass measurement, scroll-aware repositioning
 
-## v0.1 — Positioning completeness
+## v0.2.0 — Positioning completeness (shipped)
 
-- **`Size` middleware** — constrain floating to available space (menus that get scrollable when they'd otherwise overflow)
-- **`Hide` middleware** — detach when the anchor scrolls off-screen (avoid orphaned tooltips)
-- **`AutoPlacement`** — try N placements, pick the one that fits best
+- **`SizeMiddleware`** — reports available space so menus can cap height + scroll ✅
+- **`Hide`** — flags when the anchor scrolls off-screen ✅
+- **`AutoPlacement`** — pick the side with the most room ✅
+- **`Shift` main/cross axis + RTL** — main-axis-only by default (no detaching) ✅
+
+## Next — positioning + interaction
+
 - **Anchor tracking through transforms** — respect `Transform.rotate` / `Transform.scale` on ancestors
 - **Logical placements** — `PlacementLogical.start` / `end` that respect RTL
+- **Interaction/a11y layer** — focus trap, keyboard navigation, enter/exit animation on `FloatingOverlay`
+- **Virtual/rect reference** — anchor to an arbitrary rect, not just a widget
 
 ## v0.2 — Rendering flexibility
 

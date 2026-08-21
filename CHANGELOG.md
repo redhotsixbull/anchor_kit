@@ -1,4 +1,7 @@
-## 0.2.0
+## 0.2.0-dev.1
+
+Prerelease of 0.2.0 — opt in with `anchor_kit: 0.2.0-dev.1`. Stable users stay
+on 0.1.x until 0.2.0 ships.
 
 - **New middleware:**
   - `SizeMiddleware` — reports available space on the resolved side

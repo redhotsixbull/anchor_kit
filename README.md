@@ -13,7 +13,7 @@ shift, arrow). `anchor_kit` is that missing primitive: a pure `computePosition`
 function plus a `FloatingOverlay` widget, so higher-level UI kits don't have to
 reinvent placement math.
 
-> **Status:** `0.1.0` — early but usable. The core is covered by tests and runs
+> **Status:** `0.2.0` — early but usable. The core is covered by tests and runs
 > on every platform (mobile, desktop, **web**). Some middleware from Floating UI
 > is not implemented yet — see [Known limitations](#known-limitations).
 
@@ -46,7 +46,7 @@ flutter run -d chrome    # web
 
 ```yaml
 dependencies:
-  anchor_kit: ^0.1.0
+  anchor_kit: ^0.2.0
 ```
 
 ## Quick start

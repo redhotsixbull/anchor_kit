@@ -1,3 +1,14 @@
+## 0.2.0-dev.2
+
+- **Fix (`AutoPlacement`):** an earlier `OffsetMiddleware` gap is now preserved
+  when `AutoPlacement` resolves to a different side — the offset is re-projected
+  onto the chosen side's axes instead of snapping the element back to the bare
+  base position (it used to touch the anchor after a re-place).
+- **Fix (`AutoPlacement`):** the "keep the current placement if it fits"
+  fast-path no longer retains a side that the caller excluded from `candidates`;
+  the current placement is kept only when it is actually a candidate.
+- **Docs:** `README` install/status now point at `^0.2.0`.
+
 ## 0.2.0-dev.1
 
 Prerelease of 0.2.0 — opt in with `anchor_kit: 0.2.0-dev.1`. Stable users stay

@@ -328,6 +328,33 @@ void main() {
       );
       expect(result.placement.side, PlacementSide.bottom);
     });
+
+    test('preserves an earlier OffsetMiddleware gap after it re-places', () {
+      final result = computePosition(
+        anchor: const Rect.fromLTWH(180, 0, 40, 40), // at the top edge
+        floating: const Size(60, 60),
+        viewport: viewport,
+        placement: Placement.top, // would overflow → re-places to bottom
+        middleware: [OffsetMiddleware(8), AutoPlacement()],
+      );
+      expect(result.placement.side, PlacementSide.bottom);
+      // The 8px gap survives the side change instead of snapping to the anchor.
+      expect(result.offset.dy, 48); // anchor.bottom (40) + gap (8)
+    });
+
+    test('does not keep the current placement when it is not a candidate', () {
+      final result = computePosition(
+        anchor: const Rect.fromLTWH(180, 380, 40, 40), // middle; right fits fine
+        floating: const Size(60, 40),
+        viewport: viewport,
+        placement: Placement.right,
+        // right fits, but the caller restricted the candidate set to top.
+        middleware: [AutoPlacement(candidates: [Placement.top])],
+      );
+      expect(result.placement, Placement.top);
+      final data = result.middlewareData['autoPlacement']! as Map<String, Object?>;
+      expect(data['changed'], true);
+    });
   });
 
   group('Hide', () {

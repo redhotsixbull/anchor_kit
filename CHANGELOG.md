@@ -1,3 +1,26 @@
+## 0.2.0
+
+Stable release of the 0.2.0 line (the `0.2.0-dev.*` notes below are the full
+history). Headline changes since `0.1.x`:
+
+- **New middleware:** `SizeMiddleware` (available-space reporting for capped,
+  scrollable menus), `AutoPlacement` (pick the side with the most room), and
+  `Hide` (flag when the anchor scrolls off-screen). `Shift` gained main-axis /
+  cross-axis / RTL controls.
+- **Fix (`FloatingOverlay`):** overlay mutations are deferred out of the
+  build/layout phase, so opening/updating an overlay under a `LayoutBuilder`
+  (or rebuilt per-frame) no longer throws `setState() called during build` on
+  Flutter 3.35+.
+- **Fix (`AutoPlacement`):** preserves an earlier `OffsetMiddleware` gap across a
+  re-place, and only keeps the current side when it is an allowed candidate.
+- **Example:** a new **Stress test** recipe — an in-app performance harness with
+  a live FPS / build / raster / jank readout and a `computePosition`
+  micro-benchmark.
+- **Docs:** README gained a measured **Performance** section; install/status
+  point at `^0.2.0`.
+
+All public API additions are backward compatible with `0.1.x`.
+
 ## 0.2.0-dev.3
 
 - **Fix (`FloatingOverlay`):** opening/updating an overlay no longer throws

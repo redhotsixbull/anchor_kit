@@ -1,3 +1,13 @@
+## 0.2.0-dev.3
+
+- **Fix (`FloatingOverlay`):** opening/updating an overlay no longer throws
+  `setState() called during build`. When a `FloatingOverlay` is rebuilt during a
+  layout pass — e.g. nested under a `LayoutBuilder`, or rebuilt every frame — its
+  `didUpdateWidget` used to insert/remove/rebuild the `Overlay` entry
+  synchronously, marking the already-built `Overlay` dirty mid-build. Overlay
+  mutations triggered during build/layout are now deferred to just after the
+  frame. Surfaced on Flutter 3.35+ where `Overlay` is stricter.
+
 ## 0.2.0-dev.2
 
 - **Fix (`AutoPlacement`):** an earlier `OffsetMiddleware` gap is now preserved

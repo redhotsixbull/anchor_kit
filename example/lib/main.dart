@@ -4,6 +4,8 @@ import 'recipes/dropdown_recipe.dart';
 import 'recipes/placement_playground.dart';
 import 'recipes/popover_recipe.dart';
 import 'recipes/select_recipe.dart';
+import 'recipes/size_recipe.dart';
+import 'recipes/stress_test_recipe.dart';
 import 'recipes/tooltip_recipe.dart';
 
 void main() => runApp(const ExampleApp());
@@ -34,6 +36,12 @@ final recipes = <Recipe>[
   Recipe('popover', 'Popover card',
       'Rich card with an arrow; pick any side', Icons.chat_bubble_outline,
       (_) => const PopoverRecipe()),
+  Recipe('size', 'Size (constrained menu)',
+      'Long menu capped to the viewport, scrolls inside', Icons.height,
+      (_) => const SizeRecipe()),
+  Recipe('stress', 'Stress test',
+      'Perf harness: compute benchmark + many live overlays',
+      Icons.speed_outlined, (_) => const StressTestRecipe()),
 ];
 
 class ExampleApp extends StatelessWidget {

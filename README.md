@@ -13,7 +13,7 @@ shift, arrow). `anchor_kit` is that missing primitive: a pure `computePosition`
 function plus a `FloatingOverlay` widget, so higher-level UI kits don't have to
 reinvent placement math.
 
-> **Status:** `0.1.0` — early but usable. The core is covered by tests and runs
+> **Status:** `0.2.0` — early but usable. The core is covered by tests and runs
 > on every platform (mobile, desktop, **web**). Some middleware from Floating UI
 > is not implemented yet — see [Known limitations](#known-limitations).
 
@@ -46,7 +46,7 @@ flutter run -d chrome    # web
 
 ```yaml
 dependencies:
-  anchor_kit: ^0.1.0
+  anchor_kit: ^0.2.0
 ```
 
 ## Quick start
@@ -107,8 +107,11 @@ order: **`OffsetMiddleware` → `Flip` → `Shift` → `Arrow`**.
   axis.
 - **`Flip({padding})`** — if the current side would overflow, flips to the
   opposite side. If neither side fully fits, keeps the one that overflows least.
-- **`Shift({padding})`** — slides the element along the viewport so it stays
-  visible, **without changing the side**:
+- **`Shift({padding, mainAxis, crossAxis, rtl})`** — slides the element along the
+  viewport so it stays visible, **without changing the side**. Clamps the **main
+  axis** (parallel to the anchor edge) by default; `crossAxis: true` also clamps
+  toward the anchor (can detach it); `rtl: true` keeps the right edge for
+  oversized elements.
 
   ```
   Without Shift:              With Shift:
@@ -121,6 +124,15 @@ order: **`OffsetMiddleware` → `Flip` → `Shift` → `Arrow`**.
 
   (`Flip` changes the side; `Shift` keeps the side and moves along the edge.
   They're usually used together.)
+- **`AutoPlacement({padding, candidates})`** — chooses the side with the most
+  room (keeps the current side if it fits, else least overflow). Use *instead of*
+  `Flip`. Records the pick in `data['autoPlacement']`.
+- **`SizeMiddleware({padding})`** — reports the space available on the resolved
+  side in `data['size'] = {availableWidth, availableHeight}`, so a long menu can
+  cap its height to the viewport and scroll internally. See the "Size" example
+  recipe.
+- **`Hide({padding})`** — flags `data['hide'] = {referenceHidden}` when the anchor
+  scrolls off-screen, so you can hide the floating element.
 - **`Arrow({padding, arrowSize})`** — computes where a little arrow should sit so
   it points at the anchor's centre. Read it from
   `position.middlewareData['arrow']` (`{x?, y?}`) — see `ArrowBubble` in the
@@ -141,19 +153,36 @@ the anchor:
 - Optional **`barrierDismissible` + `onDismiss`** for tap-outside-to-close
   (dropdowns / selects / popovers).
 
+## Performance
+
+Positioning is a pure synchronous function with no allocations beyond the
+result. Measured on an Apple M3 Pro (`flutter test`, JIT — an AOT release build
+is faster):
+
+| Pipeline | per call | throughput |
+|---|---|---|
+| base placement, no middleware | ~0.03 µs | ~36 M/sec |
+| full 6-stage chain (offset → flip → shift → size → hide → arrow) | ~0.64 µs | ~1.5 M/sec |
+
+A 60 fps frame gives you a 16.7 ms budget — room for tens of thousands of
+full-chain positionings. In practice a popover's cost is Flutter's overlay
+layout, not `computePosition`.
+
+Run it yourself: the example app ships a **Stress test** recipe with a live
+FPS / build / raster / jank readout and a `computePosition` micro-benchmark
+(`flutter run --profile` for representative numbers).
+
 ## Known limitations
 
-Honest scope for `0.1.x` (vs. Floating UI). None are blockers for the use cases
-above, but know what's missing:
+Honest scope (vs. Floating UI). None are blockers for the use cases above:
 
-- No `size` middleware (constrain the floating element to the available space).
-- No `hide` middleware (detach when the anchor scrolls off-screen).
-- No `autoPlacement` (pick the best of several placements automatically).
 - No virtual/rect reference elements — the anchor is always a widget.
-- `Shift` clamps on both axes; Floating UI defaults to the main axis only.
 - `FloatingOverlay` provides positioning + an optional dismiss barrier, but not
   focus trapping / keyboard navigation / enter-exit animation — compose those
   yourself for now.
+- Middleware run in a single pass; `SizeMiddleware` reports available space and
+  the floating element settles to fit over one extra frame (fine in practice, as
+  `FloatingOverlay` re-measures every frame).
 
 See [`doc/ROADMAP.md`](doc/ROADMAP.md) and [`doc/SPEC.md`](doc/SPEC.md).
 

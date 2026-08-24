@@ -69,9 +69,28 @@ class _FloatingOverlayState extends State<FloatingOverlay> {
   void didUpdateWidget(covariant FloatingOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isOpen != oldWidget.isOpen) {
-      widget.isOpen ? _open() : _close();
+      _runWhenSafe(() => widget.isOpen ? _open() : _close());
     } else if (widget.isOpen) {
-      _entry?.markNeedsBuild();
+      _runWhenSafe(() => _entry?.markNeedsBuild());
+    }
+  }
+
+  /// Runs an [Overlay]-mutating action, deferring it to just after the frame if
+  /// we're currently inside build/layout. `didUpdateWidget` can fire while an
+  /// ancestor is laying out (e.g. under a `LayoutBuilder`, or during a
+  /// per-frame rebuild); inserting/removing/rebuilding an overlay entry then
+  /// would mark the already-built [Overlay] dirty and throw
+  /// "setState() called during build". Post-frame it is safe.
+  void _runWhenSafe(VoidCallback action) {
+    final phase = SchedulerBinding.instance.schedulerPhase;
+    final building = phase == SchedulerPhase.persistentCallbacks ||
+        phase == SchedulerPhase.midFrameMicrotasks;
+    if (building) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) action();
+      });
+    } else {
+      action();
     }
   }
 

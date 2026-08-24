@@ -5,4 +5,7 @@ export 'src/middleware/offset.dart';
 export 'src/middleware/flip.dart';
 export 'src/middleware/shift.dart';
 export 'src/middleware/arrow.dart';
+export 'src/middleware/size.dart';
+export 'src/middleware/autoplacement.dart';
+export 'src/middleware/hide.dart';
 export 'src/floating_overlay.dart';

@@ -1,3 +1,66 @@
+## 0.2.0
+
+Stable release of the 0.2.0 line (the `0.2.0-dev.*` notes below are the full
+history). Headline changes since `0.1.x`:
+
+- **New middleware:** `SizeMiddleware` (available-space reporting for capped,
+  scrollable menus), `AutoPlacement` (pick the side with the most room), and
+  `Hide` (flag when the anchor scrolls off-screen). `Shift` gained main-axis /
+  cross-axis / RTL controls.
+- **Fix (`FloatingOverlay`):** overlay mutations are deferred out of the
+  build/layout phase, so opening/updating an overlay under a `LayoutBuilder`
+  (or rebuilt per-frame) no longer throws `setState() called during build` on
+  Flutter 3.35+.
+- **Fix (`AutoPlacement`):** preserves an earlier `OffsetMiddleware` gap across a
+  re-place, and only keeps the current side when it is an allowed candidate.
+- **Example:** a new **Stress test** recipe — an in-app performance harness with
+  a live FPS / build / raster / jank readout and a `computePosition`
+  micro-benchmark.
+- **Docs:** README gained a measured **Performance** section; install/status
+  point at `^0.2.0`.
+
+All public API additions are backward compatible with `0.1.x`.
+
+## 0.2.0-dev.3
+
+- **Fix (`FloatingOverlay`):** opening/updating an overlay no longer throws
+  `setState() called during build`. When a `FloatingOverlay` is rebuilt during a
+  layout pass — e.g. nested under a `LayoutBuilder`, or rebuilt every frame — its
+  `didUpdateWidget` used to insert/remove/rebuild the `Overlay` entry
+  synchronously, marking the already-built `Overlay` dirty mid-build. Overlay
+  mutations triggered during build/layout are now deferred to just after the
+  frame. Surfaced on Flutter 3.35+ where `Overlay` is stricter.
+
+## 0.2.0-dev.2
+
+- **Fix (`AutoPlacement`):** an earlier `OffsetMiddleware` gap is now preserved
+  when `AutoPlacement` resolves to a different side — the offset is re-projected
+  onto the chosen side's axes instead of snapping the element back to the bare
+  base position (it used to touch the anchor after a re-place).
+- **Fix (`AutoPlacement`):** the "keep the current placement if it fits"
+  fast-path no longer retains a side that the caller excluded from `candidates`;
+  the current placement is kept only when it is actually a candidate.
+- **Docs:** `README` install/status now point at `^0.2.0`.
+
+## 0.2.0-dev.1
+
+Prerelease of 0.2.0 — opt in with `anchor_kit: 0.2.0-dev.1`. Stable users stay
+on 0.1.x until 0.2.0 ships.
+
+- **New middleware:**
+  - `SizeMiddleware` — reports available space on the resolved side
+    (`data['size'] = {availableWidth, availableHeight}`) so a long menu can cap
+    its height to the viewport and scroll. New "Size" example recipe.
+  - `AutoPlacement` — picks the side with the most room (keeps the current side
+    if it fits, else least overflow); use instead of `Flip`.
+  - `Hide` — flags `data['hide'] = {referenceHidden}` when the anchor scrolls
+    off-screen.
+- **`Shift`** now clamps only the **main axis** by default (was both axes), so
+  it no longer detaches the floating element from its anchor. Opt into
+  `crossAxis: true`; `rtl: true` keeps the right edge for oversized elements.
+- Note: `SizeMiddleware` collides with `dart:ui`'s `Size`, hence the
+  `Middleware` suffix.
+
 ## 0.1.1
 
 - **Docs:** denser, mobile-sized screenshots (430×820) so the README images

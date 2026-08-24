@@ -483,6 +483,49 @@ void main() {
       await tester.pump();
       expect(dismissed, 1);
     });
+
+    testWidgets('does not throw when rebuilt during layout (under LayoutBuilder)',
+        (tester) async {
+      // Regression: an open FloatingOverlay nested under a LayoutBuilder gets
+      // rebuilt *during* the layout pass when constraints change. Mutating the
+      // Overlay synchronously from didUpdateWidget then threw "setState() called
+      // during build". The mutation must be deferred to post-frame.
+      final width = ValueNotifier<double>(300);
+      addTearDown(width.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ValueListenableBuilder<double>(
+              valueListenable: width,
+              builder: (_, w, __) => SizedBox(
+                width: w,
+                child: LayoutBuilder(
+                  builder: (context, _) => Center(
+                    child: FloatingOverlay(
+                      isOpen: true,
+                      placement: Placement.bottom,
+                      floating: _pop,
+                      child: const SizedBox(width: 50, height: 20),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(tester.takeException(), isNull);
+
+      // Force a relayout → LayoutBuilder rebuilds the FloatingOverlay mid-layout.
+      width.value = 200;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(tester.takeException(), isNull);
+      expect(find.text('pop'), findsOneWidget);
+    });
   });
 }
 

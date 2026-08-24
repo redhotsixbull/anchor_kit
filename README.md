@@ -153,6 +153,25 @@ the anchor:
 - Optional **`barrierDismissible` + `onDismiss`** for tap-outside-to-close
   (dropdowns / selects / popovers).
 
+## Performance
+
+Positioning is a pure synchronous function with no allocations beyond the
+result. Measured on an Apple M3 Pro (`flutter test`, JIT — an AOT release build
+is faster):
+
+| Pipeline | per call | throughput |
+|---|---|---|
+| base placement, no middleware | ~0.03 µs | ~36 M/sec |
+| full 6-stage chain (offset → flip → shift → size → hide → arrow) | ~0.64 µs | ~1.5 M/sec |
+
+A 60 fps frame gives you a 16.7 ms budget — room for tens of thousands of
+full-chain positionings. In practice a popover's cost is Flutter's overlay
+layout, not `computePosition`.
+
+Run it yourself: the example app ships a **Stress test** recipe with a live
+FPS / build / raster / jank readout and a `computePosition` micro-benchmark
+(`flutter run --profile` for representative numbers).
+
 ## Known limitations
 
 Honest scope (vs. Floating UI). None are blockers for the use cases above:

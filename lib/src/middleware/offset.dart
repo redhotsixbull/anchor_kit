@@ -41,7 +41,7 @@ class OffsetMiddleware extends Middleware {
 
 /// Deprecated alias for [OffsetMiddleware]. The old name was ambiguous with
 /// `dart:ui`'s `Offset`.
-@Deprecated('Renamed to OffsetMiddleware. Offset4 will be removed in v0.1.0.')
+@Deprecated('Renamed to OffsetMiddleware. Offset4 will be removed in v0.3.0.')
 class Offset4 extends OffsetMiddleware {
   Offset4(super.distance, {super.crossAxis});
 }

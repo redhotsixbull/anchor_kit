@@ -1,3 +1,30 @@
+## 0.2.1
+
+Documentation hygiene — no behaviour changes.
+
+- **`doc/API.md` caught up with 0.2.0.** `AutoPlacement`, `SizeMiddleware` and
+  `Hide` shipped in 0.2.0 and were documented in the README, but the API
+  reference still stopped at `Arrow` — all three now have entries with their
+  constructor arguments and the `middlewareData` keys they write. The
+  `Placement` section also names `PlacementSide` / `PlacementAlign`, which had
+  never been mentioned by name despite being how you read a resolved placement
+  (`position.placement.side`).
+- **`Offset4` is documented as deprecated**, with the replacement spelled out.
+  Its deprecation message said it would be removed in `v0.1.0` — a version that
+  had already shipped — and now names `0.3.0`.
+- **The README no longer carries version numbers.** The status line restated the
+  release and Install pinned `^0.2.0`; both had to be edited every release and
+  are exactly what went stale in sibling packages. `pubspec.yaml` is the
+  version, `CHANGELOG.md` is the history, the pub.dev badge renders the current
+  number. Install is now `flutter pub add anchor_kit`.
+- **New: `test/docs_freshness_test.dart`** — fails the suite if the README
+  contains a version literal, if `CHANGELOG.md`'s newest entry doesn't match
+  `pubspec.yaml`, or if a public type has no entry in `doc/API.md` (this is the
+  guard that found the three undocumented middleware).
+- **New: `test/readme_snippets_test.dart`** — compile-checks every Dart snippet
+  in the README and `doc/API.md` against the real API, including each documented
+  middleware constructor and the "write your own middleware" example.
+
 ## 0.2.0
 
 Stable release of the 0.2.0 line (the `0.2.0-dev.*` notes below are the full

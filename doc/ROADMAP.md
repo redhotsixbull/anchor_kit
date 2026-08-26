@@ -14,11 +14,21 @@
 - **`AutoPlacement`** — pick the side with the most room ✅
 - **`Shift` main/cross axis + RTL** — main-axis-only by default (no detaching) ✅
 
+## v0.2.1 — Docs that can't rot (shipped)
+
+- **API reference caught up with 0.2.0** — `AutoPlacement` / `SizeMiddleware` /
+  `Hide` / `PlacementSide` / `PlacementAlign` documented ✅
+- **README carries no version numbers**; `docs_freshness_test.dart` +
+  `readme_snippets_test.dart` fail the suite if the docs drift ✅
+- **`Offset4` removal rescheduled to `0.3.0`** (its deprecation message named a
+  version that had already shipped) ✅
+
 ## Next — positioning + interaction
 
 - **Anchor tracking through transforms** — respect `Transform.rotate` / `Transform.scale` on ancestors
 - **Logical placements** — `PlacementLogical.start` / `end` that respect RTL
 - **Interaction/a11y layer** — focus trap, keyboard navigation, enter/exit animation on `FloatingOverlay`
+- **Remove `Offset4`** — the deprecated alias for `OffsetMiddleware` (scheduled for `0.3.0`)
 - **Virtual/rect reference** — anchor to an arbitrary rect, not just a widget
 
 ## v0.2 — Rendering flexibility

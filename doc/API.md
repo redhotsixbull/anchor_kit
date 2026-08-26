@@ -12,6 +12,15 @@ Placement.bottom       Placement.bottomStart       Placement.bottomEnd
 Placement.left         Placement.leftStart         Placement.leftEnd
 ```
 
+Each is a `Placement(PlacementSide, PlacementAlign)`:
+
+- **`PlacementSide`** — `top` / `right` / `bottom` / `left`.
+- **`PlacementAlign`** — `start` / `center` / `end`.
+
+Read them back off a resolved placement with `placement.side` /
+`placement.align` (e.g. `position.placement.side.name`), or build one directly:
+`Placement(PlacementSide.top, PlacementAlign.start)`.
+
 Helpers:
 - `placement.flipSide()` — same alignment, opposite side.
 - `placement.isVertical` / `.isHorizontal` — main axis check.
@@ -71,6 +80,38 @@ Clamps the floating's top-left so the rectangle stays inside
 Data: `{'shift': {'dx': ..., 'dy': ...}}` — how much (may be zero) the
 element was pushed on each axis.
 
+### `AutoPlacement({padding = 0, candidates})`
+
+Chooses the side with the most available room instead of only flipping to the
+opposite one. Keeps the current side if it fits; otherwise picks the candidate
+that overflows least. Use it *instead of* `Flip`, not with it. `candidates`
+restricts the sides considered (defaults to all four, keeping the input
+alignment).
+
+Data: `{'autoPlacement': {'side': String, 'changed': bool}}`.
+
+---
+
+### `SizeMiddleware({padding = 0})`
+
+Reports how much room the floating element has on the resolved side, so a long
+menu can cap its height to the viewport and scroll internally rather than
+overflowing. It only *reports* — applying the constraint is up to your
+`floating` builder.
+
+Data: `{'size': {'availableWidth': double, 'availableHeight': double}}`.
+
+---
+
+### `Hide({padding = 0})`
+
+Flags when the anchor has been scrolled (or otherwise moved) out of view, so you
+can hide the floating element instead of leaving it pointing at nothing.
+
+Data: `{'hide': {'referenceHidden': bool}}`.
+
+---
+
 ### `Arrow({padding = 4, arrowSize = 8})`
 
 For vertical placements, computes the `x` coordinate (relative to the
@@ -109,6 +150,15 @@ FloatingOverlay({
 - `barrierDismissible` + `onDismiss`: when both are set, a transparent
   full-screen barrier behind the floating element calls `onDismiss` on tap.
   Taps on the floating element itself do not dismiss.
+
+---
+
+## Deprecated
+
+- **`Offset4(distance, {crossAxis})`** — the original name for
+  `OffsetMiddleware`, ambiguous with `dart:ui`'s `Offset`. Still exported and
+  still works; scheduled for removal in `0.3.0`. Replace with
+  `OffsetMiddleware(distance, crossAxis: ...)`.
 
 ---
 
